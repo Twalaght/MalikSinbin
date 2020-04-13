@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
-import base64
-import time
 import argparse
-from requests import get
-import urllib.request
+import base64
 import configparser
+import time
+import urllib.request
+from requests import get
 
 # Read the arguments given to the script
 parser = argparse.ArgumentParser(description="Download a pool of images from e621")
@@ -17,10 +17,11 @@ args = parser.parse_args()
 config = configparser.ConfigParser()
 config.read("config.txt")
 
+# TODO - Change this to be like tulkas
 # Set all relevant configuration variables
-user_agent = config["e621"]["user_agent"]
-user_name = config["e621"]["user_name"]
-API_key = config["e621"]["API_key"]
+user_agent = config.get("e621", "user_agent")
+user_name = config.get("e621", "user_name")
+API_key = config.get("e621", "API_key")
 
 # Calculate the basic auth b64 credential
 user_auth = (user_name + ":" + API_key).encode("ascii")
