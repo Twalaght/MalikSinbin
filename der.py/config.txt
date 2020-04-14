@@ -1,0 +1,2 @@
+[der.py]
+image_dir: /mnt/f/Stuff/Pony [REVIEW]/Not Safe For Woona [REVIEW]/Derpibooru Artists

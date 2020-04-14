@@ -1,0 +1,4 @@
+[e621]
+user_agent: 
+user_name: 
+API_key: 
