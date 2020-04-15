@@ -1,2 +1,3 @@
 [der.py]
-image_dir: /mnt/f/Stuff/Pony [REVIEW]/Not Safe For Woona [REVIEW]/Derpibooru Artists
+image_dir: F:\Stuff\Pony [REVIEW]\Not Safe For Woona [REVIEW]\Derpibooru Artists
+image_dir2: /mnt/f/Stuff/Pony [REVIEW]/Not Safe For Woona [REVIEW]/Derpibooru Artists

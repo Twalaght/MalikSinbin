@@ -1,119 +1,146 @@
 #!/usr/bin/python3
 
+import argparse
 import configparser
 import os
-# from pathlib import Path
+# TODO - from pathlib import Path
 import re
 import urllib.request
 from requests import get
 
+
+# Read the arguments given to the script
+parser = argparse.ArgumentParser(description="Index and display images from derpibooru")
+parser.add_argument("-s", metavar="search", type=str, help="Search for a specific tag")
+parser.add_argument("-f", action="store_true", help="Reindex image paths")
+parser.add_argument("-t", action="store_true", help="Reindex image tags")
+args = parser.parse_args()
+
 # Read the config file from the working directory
-# config = configparser.ConfigParser()
-# config.read("config.txt")
-# image_dir = config.get("der.py", "image_dir")
+config = configparser.ConfigParser()
+config.read("config.txt")
+image_dir = config.get("der.py", "image_dir")
 
 
-# TODO - Name and tidy all this up
 # Extract the path and ID of each image in the folder
-# paths = []
-# imageIDs = []
-# def filewalk():
-#     for root,dirs,file in os.walk(image_dir):
-#         for name in file:
-#               paths.append(os.path.join(root, name))
+def filewalk():
+    # Create two empty lists to eventually return
+    paths, imageIDs = [], []
 
-#     for path in paths:
-#         ID = re.search(r"\d+__", path).group()[:-2]
-#         imageIDs.append(ID)
+    # Walk each folder in the given directory
+    for root,dirs,file in os.walk(image_dir):
+        for name in file:
+            # TODO - Os.path.join may be wonky
+            paths.append(os.path.join(root, name))
 
-# filewalk()
+    # Walk the files for each folder and add thier IDs
+    for path in paths:
+        ID = re.search(r"\d+__", path).group()[:-2]
+        imageIDs.append(ID)
 
-# f = open("paths.txt", "w")
-# f.write("{\n")
-# for index in range(len(imageIDs)):
-#     f.write("\"" + imageIDs[index] + "\": " + "\"" + paths[index] + "\"")
-#     if index != len(imageIDs) - 1:
-#         f.write(",\n")
+    return paths, imageIDs
 
-# f.write("\n}")
-# f.close()
+# Save the image paths to a text file
+def writepaths(paths, imageIDs):
+    file = open("paths.txt", "w", encoding="utf-8")
 
+    # Write the opening brace on its own line
+    file.write("{\n")
 
+    # Write a dictionary entry for each ID to its corresponding path
+    for index in range(len(imageIDs)):
+        file.write("\"" + imageIDs[index] + "\": \"" + paths[index] + "\"")
+        # For every line but the last, write the comma
+        if index != len(imageIDs) - 1:
+            file.write(",\n")
 
-
-# TODO - TEST TAG GRABBING
-# tags = get("https://derpibooru.org/api/v1/json/images/" + str(imageIDs[0])).json()["image"]["tags"]
-# print(type(tags))
-# print(tags) 
-
-# TODO - TEST TAG WRITING
-# f = open("tags.txt", "w")
-# f.write("{\n")
-# f.write("\"" + imageIDs[0] + "\": " + str(tags))
-# f.write("\n}")
-# f.close()
-
-# TODO - OPENS TAGS, USED FOR INDEXING AND WRITING
-# file = open("tags.txt", "r")
-# dictionary = eval(file.read())
-# file.close()
-
-# test = dictionary["1013621"]
-# print(type(test))
-# print(test)
+    # Finish the file with a closing brace
+    file.write("\n}")
+    file.close()
 
 
+if(args.f):
+    paths, imageIDs = filewalk()
+    writepaths(paths, imageIDs)
+
+
+def readtags():
+    file = open("tags.txt", "r", encoding="utf-8")
+    index = eval(file.read())
+    file.close()
+    return index
+
+
+# NEED TO APPEND TO DICTIONARY THEN CALL A SEPARATE WRITE CALL
+# Save the image tags to a text file
+def tagindex(imageIDs, cache):
+    file = open("tags.txt", "w", encoding="utf-8")
+
+    # Write the opening brace on its own line
+    file.write("{\n")
+
+    # Write a dictionary entry for each ID to its corresponding path
+    for index in range(len(imageIDs)):
+
+        if str(index) not in cache:
+            print("Tagging image " + str(imageIDs[index]) + "...")
+
+            request = get("https://derpibooru.org/api/v1/json/images/" + str(imageIDs[index]))
+
+            if request.status_code != 200:
+                print("Request failed, gracefully backing off")
+                break
+
+            tags = request.json()["image"]["tags"]
+
+            file.write("\"" + imageIDs[index] + "\": \"" + str(tags))
+            # For every line but the last, write the comma
+            if index != len(imageIDs) - 1:
+                file.write(",\n")
+
+    file.write("\n}")
+    file.close()
 
 
 
-# from itertools import cycle
-# import tkinter as tk
-# from PIL import ImageTk, Image
-
-# class Viewer(tk.Tk):
-#     # Initialize the image viewer
-#     def __init__(self, input_images, delay):
-#         # Setup the photo viewer
-#         tk.Tk.__init__(self)
-#         self.title("DisplayBooru")
-#         self.delay = delay * 1000
-#         self.config(background="#222222")
-#         self.attributes("-fullscreen", True)
-
-#         # Read in the input images and resize them as needed
-#         arry = []
-#         for image in input_images:
-#             # Read in an image and get its size values
-#             input_image = Image.open(image)
-#             width, height = input_image.size
-
-#             # Rescale the image to fit the screen
-#             scale = self.winfo_screenheight() / height
-#             width = (int)(width * scale)
-#             height = (int)(height * scale)
-#             input_image = input_image.resize((width, height), Image.ANTIALIAS)
-
-#             # Add the image into the array
-#             arry.append(ImageTk.PhotoImage(input_image))
-
-#         # Finalize the tk setup
-#         self.pictures = cycle(arry)
-#         self.picture_display = tk.Label(self)
-#         self.picture_display.pack()
-
-#     def slideshow(self):
-#         # Iterates through the images given, showing each for delay time
-#         img_object = next(self.pictures)
-#         self.picture_display.config(image=img_object)
-#         self.after(self.delay, self.slideshow)
-
-#     def run(self):
-#         self.mainloop()
+#paths, imageIDs = filewalk()
+#tagindex(imageIDs, readtags())
 
 
-# delay = 5
-# images = ["1.png", "2.jpeg", "3.png"]
 
-# app = Viewer(images, delay)
-# app.slideshow()
-# app.run()
+
+import tkinter as tk
+from PIL import ImageTk, Image
+
+# Display a slideshow of the given images, with a delay for each
+def slideshow(images, delay):
+    def next_image():
+        # Open the image, read in its size, and calculate the scale
+        input_image = Image.open(next(img_iter))
+
+        # Get image dimensions and scale it to fit screen
+        dims = list(input_image.size)
+        dims = [int(dims[0] * viewer.winfo_screenheight() / dims[1]), viewer.winfo_screenheight()]
+
+        # Set the image into the displays label
+        img_label.img = ImageTk.PhotoImage(input_image.resize((dims), Image.ANTIALIAS))
+        img_label.config(image = img_label.img)
+        img_label.after(delay, next_image)
+
+    # Sets up the iterator, labels, and slideshow config
+    img_iter = iter(images)
+    viewer = tk.Tk()
+    viewer.config(background="#222222")
+    viewer.attributes("-fullscreen", True)
+    img_label = tk.Label(viewer)
+    img_label.pack()
+
+    # Call next image once to start recursion, and run the main loop
+    next_image()
+    viewer.mainloop()
+
+if (args.s == "ss"):
+    paths, imageIDs = filewalk()
+    import random
+    random.shuffle(paths)
+    slideshow(paths, 3000)
