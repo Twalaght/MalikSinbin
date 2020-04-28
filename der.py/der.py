@@ -122,3 +122,5 @@ elif (args.t):
 
 # TODO - Multiple search processing
 # TODO - Resize very wide images properly
+# TODO - Implement sequences wrapping
+# TODO - Progress when tagging
