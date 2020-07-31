@@ -10,9 +10,8 @@ HISTFILESIZE=2000
 shopt -s histappend
 shopt -s checkwinsize
 
-# TODO - Make dependant on the existence of the wal folder
-# Set the desired PS1, the coloured version uses green and blue
-PS1="\[\033[01;32m\][\u@\h \[\033[01;34m\]\W\[\033[01;32m\]]\[\033[00m\]\$ "	# Coloured
+# Set the desired PS1, the coloured version uses terminal colours
+PS1="\[\e[38;5;10m\][\u@\h \[\e[38;5;12m\]\W\[\e[38;5;10m\]]\[\e[38;5;15m\]\$ "	# Coloured
 # PS1="[\u@\h \W]\$ "								# Uncoloured
 
 
