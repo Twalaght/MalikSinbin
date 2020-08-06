@@ -36,3 +36,8 @@ alias g="git"
 
 # Binds
 bind 'set bell-style none'
+
+# Enable persistence for wal colour schemes
+if [[ -f $HOME/.cache/wal/sequences ]]; then
+	(cat ~/.cache/wal/sequences &)
+fi
