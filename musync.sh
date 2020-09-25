@@ -1,9 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
-# TODO - Sync mp3 no parity too
-# TODO - Playlist handling
-
-source="/mnt/f/Media/Music"
-
-rsync -av --ignore-existing -e "ssh -p 2222" "$source/FLAC/" twi@192.168.1.106:SDCard/Music/FLAC
-# rsync -av --ignore-existing -e "ssh -p 2222" "$source/FLAC/" twi@192.168.1.106:SDCard/Music/FLAC
+# Sync music folders to phone over ssh
+rsync -av --ignore-existing -e "ssh -p 2222" "$MUSIC_PATH/FLAC/" twi@"$PHONE_IP":SDCard/Music/FLAC
