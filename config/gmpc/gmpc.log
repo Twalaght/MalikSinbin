@@ -1,0 +1,19 @@
+05/11/2020-14:18:56:Info:A new metadata plugin was added, gmpc has purged all failed hits from the cache
+05/11/2020-14:19:06:Critical:<b>error code 13: problems connecting to &quot;localhost&quot; on port 6600: Operation now in progress</b>
+05/11/2020-14:19:12:Critical:<b>error code 13: problems connecting to &quot;localhost&quot; on port 6600: Operation now in progress</b>
+05/11/2020-14:19:13:Critical:<b>error code 13: problems connecting to &quot;localhost&quot; on port 6600: Operation now in progress</b>
+05/11/2020-14:19:13:Critical:<b>error code 13: problems connecting to &quot;localhost&quot; on port 6600: Operation now in progress</b>
+05/11/2020-14:19:14:Critical:<b>error code 13: problems connecting to &quot;localhost&quot; on port 6600: Operation now in progress</b>
+05/11/2020-14:19:28:Critical:<b>error code 13: problems connecting to &quot;localhost&quot; on port 6600: Operation now in progress</b>
+05/11/2020-14:19:30:Critical:<b>error code 13: problems connecting to &quot;localhost&quot; on port 6600: Operation now in progress</b>
+05/11/2020-14:19:31:Critical:<b>error code 13: problems connecting to &quot;localhost&quot; on port 6600: Operation now in progress</b>
+05/11/2020-14:19:51:Info:Connected to mpd
+05/11/2020-14:19:51:Info:MPD Database has been updated at: Thu 05 Nov 2020 13:50:46
+05/11/2020-14:20:37:Info:Connected to mpd
+05/11/2020-14:21:34:Info:Connected to mpd
+05/11/2020-14:23:54:Info:Connected to mpd
+05/11/2020-14:25:30:Info:Connected to mpd
+05/11/2020-14:25:40:Warning:Playlist support in MPD is not working. See the manual on possible fixes.
+Playlist editor and favorites are now disabled.
+06/11/2020-15:28:18:Info:Connected to mpd
+06/11/2020-15:28:18:Info:MPD Database has been updated at: Fri 06 Nov 2020 15:26:26
