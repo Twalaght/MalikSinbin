@@ -19,6 +19,13 @@ def slideshow(images, delay):
 
     # Sets up the iterator, labels, and slideshow config
     random.shuffle(images)
+
+
+    # TODO - Potentially add loop functionality
+    # import itertools
+    # img_iter = itertools.cycle(images)
+
+
     img_iter = iter(images)
     viewer = tkinter.Tk()
     viewer.config(background="#222222")
