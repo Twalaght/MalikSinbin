@@ -1,5 +1,0 @@
-let g:netrw_dirhistmax  =10
-let g:netrw_dirhistcnt =3
-let g:netrw_dirhist_3='/home/jono/.config/mpd'
-let g:netrw_dirhist_2='/home/jono/polybar-scripts/updates-pacman-aurhelper'
-let g:netrw_dirhist_1='/etc/alsa/conf.d'
