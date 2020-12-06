@@ -8,8 +8,8 @@ import json
 
 # TODO - Set this in the actual home folder and make path friendly
 # TODO IF FILE EXISTS THAT IS
-with open("playlist.json") as file:
-      playlists = json.load(file)
+# with open("playlist.json") as file:
+#       playlists = json.load(file)
 
 # print(playlists)
 # exit()
@@ -43,6 +43,10 @@ for song in songs:
 
 print("Dictionary is ")
 print(dict)
+
+print("")
+print("Songs are:")
+print(songs)
 
 
 # TODO - Write to playlist file

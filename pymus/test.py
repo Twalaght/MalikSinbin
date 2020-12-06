@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 
+# TODO - Tests dumping data to files and reading them back in
+
+
 import json
 
 dictionary_data = {"Soft Fuzzy Man": ["Krump", "Kek"], "b": 2}
