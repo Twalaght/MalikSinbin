@@ -14,16 +14,13 @@ if not json_path.exists():
     quit()
 
 # Load the playlist information json file
-json_data = json.load(open(json_path, "r"))
+json_file = open(json_path, "r")
+json_data = json.load(json_file)
+json_file.close()
 playlists = json_data["playlists"]
 
 
-
-
-# TODO - Need NEW SONGS, and merge it with old songs already in the database
 songs = []
-
-
 # TODO - Can probs get rid of this
 music_path = Path("/mnt/c/Users/Jono/Desktop/Music")
 
@@ -37,53 +34,56 @@ for i in range(len(json_data["folders"])):
             entry = list(os.path.splitext(file)[:2])
 
             # Check if the song already exists in the json
-            if entry[0] in json_data["songs"]:
-                continue
+            if entry[0] not in json_data["songs"]:
+                # Get the path of each song
+                entry.append(path)
 
+                # Add a -1 entry for each playlist we have
+                entry.append([-1] * len(playlists))
 
-            # Get the path of each song
-            entry.append(path)
-
-
-            # Add a -1 entry for each playlist we have
-            entry.append([-1] * len(playlists))
-
-            # Append all this information to the array
-            songs.append(entry)
+                # Append all this information to the array
+                songs.append(entry)
 
 # Sort the songs we have
 songs.sort()
 
-print(songs)
-print()
-print(json_data["songs"])
-quit()
+# TODO - This breaks if we remove songs
+# Add songs to the list that were read in the database
+for i in json_data["songs"].keys():
+    songs.append([i, json_data["songs"][i][0], json_data["songs"][i][1], json_data["songs"][i][2]])
 
 
-new_dict = { }
-
-for i in range(len(songs)):
-    new_dict[songs[i][0]] = "kek"
+# WRITE TO DATABASE
 
 
-json_data["songs"] = new_dict
-print(new_dict)
+
+def write_out(json_data):
+    songs.sort()
+    json_data["songs"] = {}
+
+    # Add songs to the list from the database
+    for i in range(len(songs)):
+        # Ignore reading songs with no playlist data
+        if songs[i][3] == [-1] * len(json_data["playlists"]):
+            continue
+
+        json_data["songs"][songs[i][0]] = songs[i][1], songs[i][2], songs[i][3]
+
+    # json_data["songs"].sort()
 
 
-a_file = open("data.json", "w")
-json.dump(json_data, a_file, indent = 4)
-a_file.close()
+    json_file = open(json_path, "w")
+    json.dump(json_data, json_file, indent = 4)
+    json_file.close()
+    quit()
+
+# write_out(json_data)
 
 
-quit()
 
 # Lifetime ach award : [Music/FLAC, 0, 0, 1, 1, 0]
 # Lifetime ach award : [Music/FLAC, -1, -1, -1, -1, -1] or [Music/FLAC]
 
-
-
-# for song in songs:
-#     dict[song] = [False] * 5
 
 
 
@@ -125,16 +125,22 @@ def print_menu(main, height, width, selected, start):
 
     # TODO - Not really happy with this sytem yet
     for j in range(len(playlists)):
-        main.addstr(0, width - 10 * (j + 1), "[" + playlists[j] + "]")
+        main.addstr(0, width - 10 * (len(playlists) + 1) + 10 * (j + 1), "[" + playlists[j] + "]")
 
     main.addstr(0, width - 10 * (len(playlists) + 1) - 2, "[Playlists]")
 
     for i in range(height - 2):
         for j in range(len(playlists)):
-            # TODO - IF ENTRY EXISTS
-            main.addstr(i + 1, width - 10 * (j + 1), "[   X   ]")
-            # main.addstr(i + 1, width - 10 * (j + 1), "[       ]")
 
+            display = "[  ---  ]"
+
+            # TODO - Draw the correct way
+            if songs[start + i][3][j] == 0:
+                display = "[       ]"
+            elif songs[start + i][3][j] == 1:
+                display = "[  ***  ]"
+
+            main.addstr(i + 1, width - 10 * (len(playlists) + 1) + 10 * (j + 1), display)
 
     main.refresh()
 
@@ -185,6 +191,25 @@ def main(main):
             selected -= 1
         elif key == curses.KEY_DOWN and selected < len(songs) - 1:
             selected += 1
+        elif key >= 49 and key < 49 + len(playlists):
+            if songs[selected][3][key - 49] == 1:
+                songs[selected][3][key - 49] = 0
+            else:
+                songs[selected][3][key - 49] = 1
+
+
+            for i in range(len(songs[selected][3])):
+                if songs[selected][3][i] == -1:
+                    songs[selected][3][i] = 0
+
+
+        elif key == 48:
+            songs[selected][3] = [0] * len(playlists)
+
+        elif key == 87 or key == 119:
+            write_out(json_data)
+
+
 
         # Push the start line up or down as needed
         if selected < start:
