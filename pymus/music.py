@@ -1,26 +1,94 @@
 #!/usr/bin/python3
 
-from pathlib import Path
-import os
 import curses
+import json
+import os
+from pathlib import Path
 
+# TODO - Argument processing
+
+# Check a playlist json file exists
+json_path = Path(Path.home() / ".config" / "playlist.json")
+if not json_path.exists():
+    print(f"Playlist data not found at {json_path}, please create it")
+    quit()
+
+# Load the playlist information json file
+json_data = json.load(open(json_path, "r"))
+playlists = json_data["playlists"]
+
+
+
+
+# TODO - Need NEW SONGS, and merge it with old songs already in the database
 songs = []
-playlists = ["Max Atk", "Chillin", "Running", "Singing"]
 
 
-# TODO - Change this to environmental vars
+# TODO - Can probs get rid of this
 music_path = Path("/mnt/c/Users/Jono/Desktop/Music")
-# print(music_path.exists())
 
-for path, subdir, files in os.walk(music_path):
-    for file in files:
-        songs.append(list(os.path.splitext(file)[:2]))
+
+# Walk through each of the watch folders specified by the json
+for i in range(len(json_data["folders"])):
+    folder = Path(music_path / json_data["folders"][i])
+    for path, subdir, files in os.walk(folder):
+        for file in files:
+            # Get the name and extension of each song
+            entry = list(os.path.splitext(file)[:2])
+
+            # Check if the song already exists in the json
+            if entry[0] in json_data["songs"]:
+                continue
+
+
+            # Get the path of each song
+            entry.append(path)
+
+
+            # Add a -1 entry for each playlist we have
+            entry.append([-1] * len(playlists))
+
+            # Append all this information to the array
+            songs.append(entry)
+
+# Sort the songs we have
+songs.sort()
+
+print(songs)
+print()
+print(json_data["songs"])
+quit()
+
+
+new_dict = { }
+
+for i in range(len(songs)):
+    new_dict[songs[i][0]] = "kek"
+
+
+json_data["songs"] = new_dict
+print(new_dict)
+
+
+a_file = open("data.json", "w")
+json.dump(json_data, a_file, indent = 4)
+a_file.close()
+
+
+quit()
+
+# Lifetime ach award : [Music/FLAC, 0, 0, 1, 1, 0]
+# Lifetime ach award : [Music/FLAC, -1, -1, -1, -1, -1] or [Music/FLAC]
+
 
 
 # for song in songs:
 #     dict[song] = [False] * 5
 
 
+
+
+# Print the interactive playlist menu
 def print_menu(main, height, width, selected, start):
     main.clear()
 
@@ -42,6 +110,8 @@ def print_menu(main, height, width, selected, start):
 
 
     # Print border
+    # main.addstr(0, 0, "╔═[Song title]" + "═" * (width - 15) + "╗")
+    # main.addstr(0, 2, "[Song title]")
     main.addstr(0, 0, "╔" + "═" * (width - 2) + "╗")
     main.addstr(0, 2, "[Song title]")
     main.addstr(height - 1, 0, "╚" + "═" * (width - 2))
@@ -63,7 +133,7 @@ def print_menu(main, height, width, selected, start):
         for j in range(len(playlists)):
             # TODO - IF ENTRY EXISTS
             main.addstr(i + 1, width - 10 * (j + 1), "[   X   ]")
-
+            # main.addstr(i + 1, width - 10 * (j + 1), "[       ]")
 
 
     main.refresh()

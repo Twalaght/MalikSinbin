@@ -1,0 +1,12 @@
+{
+	"playlists": [
+		"Max Atk",
+		"Chillin",
+		"Running",
+		"Singing"
+	],
+	"songs": {
+		"a": ["a", "b"],
+		"c": "d"
+	}
+}
