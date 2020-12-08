@@ -34,10 +34,12 @@ for i in range(len(json_data["folders"])):
     folder = Path(music_path / json_data["folders"][i])
     for path, subdir, files in os.walk(folder):
         for file in files:
-            # Get the name and extension of each song
-            entry = list(os.path.splitext(file)[:2])
+            # Ignore any files that are not audio
+            if os.path.splitext(file)[1] not in [".flac", ".FLAC", ".mp3", ".MP3"]:
+                    continue
 
             # Check if the song already exists in the json
+            entry = list(os.path.splitext(file)[:2])
             if entry[0] not in json_data["songs"]:
                 # Get the path of each song
                 entry.append(path)
