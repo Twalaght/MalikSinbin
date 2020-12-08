@@ -5,27 +5,25 @@ import json
 import os
 from pathlib import Path
 
-# TODO - Argument processing
-
 # Check a playlist json file exists
 json_path = Path(Path.home() / ".config" / "playlist.json")
 if not json_path.exists():
+    # TODO - Have an example config
     print(f"Playlist data not found at {json_path}, please create it")
     quit()
+
+# TODO - Can probs get rid of this
+music_path = Path("/mnt/c/Users/Jono/Desktop/Music")
+
+
 
 # Load the playlist information json file
 json_file = open(json_path, "r")
 json_data = json.load(json_file)
 json_file.close()
-playlists = json_data["playlists"]
-
-
-songs = []
-# TODO - Can probs get rid of this
-music_path = Path("/mnt/c/Users/Jono/Desktop/Music")
-
 
 # Walk through each of the watch folders specified by the json
+songs = []
 for i in range(len(json_data["folders"])):
     folder = Path(music_path / json_data["folders"][i])
     for path, subdir, files in os.walk(folder):
@@ -39,68 +37,43 @@ for i in range(len(json_data["folders"])):
                 entry.append(path)
 
                 # Add a -1 entry for each playlist we have
-                entry.append([-1] * len(playlists))
+                entry.append([-1] * len(json_data["playlists"]))
 
                 # Append all this information to the array
                 songs.append(entry)
 
-# Sort the songs we have
+# Sort the songs we currently have
 songs.sort()
 
-# TODO - This breaks if we remove songs
 # Add songs to the list that were read in the database
 for i in json_data["songs"].keys():
     songs.append([i, json_data["songs"][i][0], json_data["songs"][i][1], json_data["songs"][i][2]])
 
-
-# WRITE TO DATABASE
-
-
-
-def write_out(json_data):
-    songs.sort()
-    json_data["songs"] = {}
-
-    # Add songs to the list from the database
-    for i in range(len(songs)):
-        # Ignore reading songs with no playlist data
-        if songs[i][3] == [-1] * len(json_data["playlists"]):
-            continue
-
-        json_data["songs"][songs[i][0]] = songs[i][1], songs[i][2], songs[i][3]
-
-    # json_data["songs"].sort()
-
-
-    json_file = open(json_path, "w")
-    json.dump(json_data, json_file, indent = 4)
-    json_file.close()
-    quit()
-
-# write_out(json_data)
-
-
-
-# Lifetime ach award : [Music/FLAC, 0, 0, 1, 1, 0]
-# Lifetime ach award : [Music/FLAC, -1, -1, -1, -1, -1] or [Music/FLAC]
-
-
-
-
-
 # Print the interactive playlist menu
-def print_menu(main, height, width, selected, start):
+def menu(main, height, width, selected, start):
     main.clear()
 
+    # Print the horizontal borders
+    main.addstr(0, 0, "╔═[Song title]" + "═" * (width - 15) + "╗")
+    main.addstr(height - 1, 0, "╚" + "═" * (width - 2))
+
+    # Display playlist titles above their respective check boxes
+    offset = width - 10 * (len(json_data["playlists"]) + 1)
+    main.addstr(0, offset - 2, "[Playlists]")
+    for i in range(len(json_data["playlists"])):
+        main.addstr(0, offset + 10 * (i + 1), "[" + json_data["playlists"][i] + "]")
 
     for i in range(height - 2):
-        # TODO - Eventually splice this with playlist sels, not width
+        # Draw vertical borders
+        main.addstr(i + 1, 0, "║")
+        main.addstr(i + 1, width - 1, "║")
+
+        # Truncate the song title if required
         title = songs[i + start][0]
-        if len(title) > width / 2:
-            title = title[:int(width / 2 - 3)] + "..."
+        if len(title) > offset + 8:
+            title = title[:int(offset + 5)] + "..."
 
-
-
+        # If a given song is selected, highlight it
         if i + start == selected:
             main.attron(curses.color_pair(1))
             main.addstr(i + 1, 1, title)
@@ -108,52 +81,45 @@ def print_menu(main, height, width, selected, start):
         else:
             main.addstr(i + 1, 1, title)
 
-
-    # Print border
-    # main.addstr(0, 0, "╔═[Song title]" + "═" * (width - 15) + "╗")
-    # main.addstr(0, 2, "[Song title]")
-    main.addstr(0, 0, "╔" + "═" * (width - 2) + "╗")
-    main.addstr(0, 2, "[Song title]")
-    main.addstr(height - 1, 0, "╚" + "═" * (width - 2))
-
-    for i in range(1, height - 1):
-        main.addstr(i, 0, "║")
-        main.addstr(i, width - 1, "║")
-
-        # TODO
-        # main.addstr(i, int(width / 2), "║")
-
-    # TODO - Not really happy with this sytem yet
-    for j in range(len(playlists)):
-        main.addstr(0, width - 10 * (len(playlists) + 1) + 10 * (j + 1), "[" + playlists[j] + "]")
-
-    main.addstr(0, width - 10 * (len(playlists) + 1) - 2, "[Playlists]")
-
-    for i in range(height - 2):
-        for j in range(len(playlists)):
-
+        # Draw each of the playlist check boxes
+        for j in range(len(json_data["playlists"])):
             display = "[  ---  ]"
-
-            # TODO - Draw the correct way
             if songs[start + i][3][j] == 0:
                 display = "[       ]"
             elif songs[start + i][3][j] == 1:
                 display = "[  ***  ]"
 
-            main.addstr(i + 1, width - 10 * (len(playlists) + 1) + 10 * (j + 1), display)
+            main.addstr(i + 1, offset + 10 * (j + 1), display)
 
     main.refresh()
 
+# Write changes to the json playlist file
+def write_out(json_data):
+    # Clear the existing json entry, and make a copy of sorted songs to insert
+    json_data["songs"] = {}
+    s_songs = songs.copy()
+    s_songs.sort()
+
+    # Add songs to the list from the database
+    for i in range(len(s_songs)):
+        # Ignore reading songs with no playlist data
+        if s_songs[i][3] == [-1] * len(json_data["playlists"]):
+            continue
+
+        # Create a dictionary entry for songs with valid playlist data
+        json_data["songs"][s_songs[i][0]] = s_songs[i][1], s_songs[i][2], s_songs[i][3]
+
+    # Open the json file and write the changes to it
+    json_file = open(json_path, "w")
+    json.dump(json_data, json_file, indent = 4)
+    json_file.close()
 
 
-# def print_center(main, text):
-#     main.clear()
-#     h, w = main.getmaxyx()
-#     x = w//2 - len(text)//2
-#     y = h//2
-#     main.addstr(y, x, text)
-#     main.refresh()
 
+# TODO - Export
+def export(json_data):
+    write_out(json_data)
+    # TODO
 
 
 # Define the programs main loop to be run with curses
@@ -161,55 +127,63 @@ def main(main):
     # Turn off cursor blinking
     curses.curs_set(0)
 
-    # TODO - Colour scheme for selected row
+    # Set the colour scheme for selected song
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
     # Get the height and width of the terminal
     term_h, term_w = main.getmaxyx()
 
-    # TODO
+    # Set the height to terminal height, or song list if smaller
     size = len(songs)
-    if size  > term_h:
+    if size > term_h:
         size = term_h
 
-    # TODO
-    # specify the current selected row
-    selected = 0
-    # Specify the starting row
+    # Specify the starting and current selected rows
     start = 0
-
+    selected = 0
 
     # Print the menu initially
-    print_menu(main, size, term_w, selected, 0)
+    menu(main, size, term_w, selected, 0)
 
     while True:
         # Get the users key presses
         key = main.getch()
 
-        # Change the selected line based on key presses
-        if key == curses.KEY_UP and selected > 0:
+        # Change the selected line with the arrow or vim keys
+        if key in [curses.KEY_UP, 75, 107] and selected > 0:
             selected -= 1
-        elif key == curses.KEY_DOWN and selected < len(songs) - 1:
+        elif key in [curses.KEY_DOWN, 74, 106] and selected < len(songs) - 1:
             selected += 1
-        elif key >= 49 and key < 49 + len(playlists):
+
+        # Modify playlist selection by the number keys, up to 9
+        elif key in range(49, 49 + len(json_data["playlists"])):
             if songs[selected][3][key - 49] == 1:
                 songs[selected][3][key - 49] = 0
             else:
                 songs[selected][3][key - 49] = 1
 
-
+            # If a new song, zero it if a selection is made
             for i in range(len(songs[selected][3])):
                 if songs[selected][3][i] == -1:
                     songs[selected][3][i] = 0
 
-
+        # If 0 is pressed, add the song to the database, but not to any playlists
         elif key == 48:
-            songs[selected][3] = [0] * len(playlists)
+            songs[selected][3] = [0] * len(json_data["playlists"])
 
-        elif key == 87 or key == 119:
+        # If Q or q is pressed, quit
+        elif key in [81, 113]:
+            quit()
+
+        # If W or w is pressed, write to the json file
+        elif key in [87, 119]:
             write_out(json_data)
+            main.addstr(size - 1, 2, "[Written out to json file]")
+            continue
 
-
+        # If E or e is pressed, quit
+        elif key in [69, 101]:
+            export()
 
         # Push the start line up or down as needed
         if selected < start:
@@ -217,16 +191,8 @@ def main(main):
         elif selected - size >= start - 2:
             start += 1
 
-
-        # elif key == curses.KEY_ENTER or key in [10, 13]:
-        #     print_center(main, "You selected '{}'".format(menu[current_row]))
-        #     main.getch()
-        #     # if user selected last row, exit the program
-        #     if current_row == len(menu)-1:
-        #         break
-
-        print_menu(main, size, term_w, selected, start)
-
+        # Refresh the menu
+        menu(main, size, term_w, selected, start)
 
 # Run the main program loop with curses
 curses.wrapper(main)
