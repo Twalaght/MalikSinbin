@@ -3,19 +3,25 @@
 import curses
 import json
 import os
+import re
 from pathlib import Path
 
 # Check a playlist json file exists
 json_path = Path(Path.home() / ".config" / "playlist.json")
 if not json_path.exists():
-    # TODO - Have an example config
-    print(f"Playlist data not found at {json_path}, please create it")
+    # Creates an example config if no config is found
+    print(f"Playlist data not found at {json_path}, an example one has been created")
+    example = {"folders": ["FLAC", "MP3 No Parity"], "playlists": ["Max Atk", "Running", \
+            "Chillin", "Singing"], "songs": {}}
+
+    # Write the new config to disk
+    json_file = open(json_path, "w")
+    json.dump(example, json_file, indent = 4)
+    json_file.close()
     quit()
 
-# TODO - Can probs get rid of this
-music_path = Path("/mnt/c/Users/Jono/Desktop/Music")
-
-
+# Load the main music path from an environmental variable
+music_path = Path(os.environ["MUSIC_PATH"])
 
 # Load the playlist information json file
 json_file = open(json_path, "r")
@@ -115,11 +121,28 @@ def write_out(json_data):
     json_file.close()
 
 
-
-# TODO - Export
+# Export playlists from database
 def export(json_data):
+    # Write to the database before exporting
     write_out(json_data)
-    # TODO
+
+    # For every playlist, check if each song is in it
+    for i in range(len(json_data["playlists"])):
+        playlist = []
+
+        for key in json_data["songs"].keys():
+            song = json_data["songs"][key]
+
+            if song[2][i] == 1:
+                # Create a string such that formatting is correct for an m3u
+                entry = re.sub("^.*Music", "/storage/emulated/0/Music", song[1])
+                playlist.append(entry + "/" + key + song[0])
+
+        # Output playlists to the current working directory
+        title = json_data["playlists"][i] + ".m3u"
+        outpath = Path(Path.cwd() / title)
+        with open(outpath, "w") as out:
+                out.write("\n".join(playlist))
 
 
 # Define the programs main loop to be run with curses
@@ -134,7 +157,7 @@ def main(main):
     term_h, term_w = main.getmaxyx()
 
     # Set the height to terminal height, or song list if smaller
-    size = len(songs)
+    size = len(songs) + 2
     if size > term_h:
         size = term_h
 
@@ -183,7 +206,9 @@ def main(main):
 
         # If E or e is pressed, quit
         elif key in [69, 101]:
-            export()
+            export(json_data)
+            main.addstr(size - 1, 2, "[Exported playlists to files]")
+            continue
 
         # Push the start line up or down as needed
         if selected < start:
