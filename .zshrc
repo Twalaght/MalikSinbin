@@ -25,13 +25,13 @@ export EDITOR="nvim"
 export VISUAL="nvim"
 
 # Shortcuts to edit and source this file
-alias ec="$EDITOR $HOME/.bashrc"
-alias sc="source $HOME/.bashrc"
+alias ec="$EDITOR $HOME/.zshrc"
+alias sc="source $HOME/.zshrc"
 
 # If the alias file is present, load it
 [[ -f $HOME/.config/shell/aliasrc ]] && source $HOME/.config/shell/aliasrc
 
 # Plugins
-source $HOME/.config/shell/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+# source $HOME/.config/shell/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source $HOME/.config/shell/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
